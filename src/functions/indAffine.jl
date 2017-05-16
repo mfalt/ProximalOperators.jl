@@ -11,22 +11,23 @@ Returns the function `g = ind{x : dot(a,x) = b}`.
 """
 
 immutable IndAffine{T <: RealOrComplex, V} <: IndicatorConvex
-  A::AbstractArray{T,2}
-  b::AbstractArray{T,1}
+  A::SparseMatrixCSC{T,Int64}
+  b::Array{T,1}
   R::V
+  normrowsinv::Array{T}
   function IndAffine(A::AbstractArray{T,2}, b::AbstractArray{T,1})
     if size(A,1) > size(A,2)
       error("A must be full row rank")
     end
-    normrows = vec(sqrt.(sum(abs2.(A), 2)))
-    A = (1./normrows).*A # normalize rows of A
-    b = (1./normrows).*b # and b accordingly
+    #normrowsinv = 1./vec(sqrt.(sum(abs2.(A), 2)))
+    #A = normrowsinv.*A # normalize rows of A
+    #b = normrowsinv.*b # and b accordingly
     if !issparse(A)
       Q, R = qr(A')
-      new(A, b, R)
+      new(A, b, R, ones(size(A,1)))
     else
       F = qrfact(A')
-      new(A, b, F)
+      new(A, b, F, ones(size(A,1)))
     end
   end
 end
